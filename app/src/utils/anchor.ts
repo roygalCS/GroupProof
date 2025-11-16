@@ -4,7 +4,7 @@ import { AnchorWallet } from '@solana/wallet-adapter-react';
 import idl from '../idl/smart_deadlines.json';
 
 export const PROGRAM_ID = new PublicKey(
-  import.meta.env.VITE_PROGRAM_ID || 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS'
+  import.meta.env.VITE_PROGRAM_ID || 'Ev7PUfQR6BJEYL7UzmA61dkYzkRmw9iVGespX9cc852j'
 );
 
 export const USDC_MINT = new PublicKey(

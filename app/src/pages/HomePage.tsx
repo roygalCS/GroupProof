@@ -5,6 +5,9 @@ import PhantomConnectButton from '../components/PhantomConnectButton';
 export default function HomePage() {
   const navigate = useNavigate();
   const { connected, publicKey } = useWallet();
+  
+  // Debug logging
+  console.log('HomePage render - connected:', connected, 'publicKey:', publicKey);
 
   return (
     <div className="app">
@@ -32,13 +35,34 @@ export default function HomePage() {
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button onClick={() => navigate('/create')} style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}>
+                <button 
+                  onClick={() => {
+                    console.log('Create Task button clicked');
+                    navigate('/create');
+                  }} 
+                  style={{ 
+                    fontSize: '1.1rem', 
+                    padding: '1rem 2rem',
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                    zIndex: 10
+                  }}
+                >
                   Create New Task
                 </button>
                 <button
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => {
+                    console.log('View Tasks button clicked');
+                    navigate('/dashboard');
+                  }}
                   className="button-secondary"
-                  style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+                  style={{ 
+                    fontSize: '1.1rem', 
+                    padding: '1rem 2rem',
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                    zIndex: 10
+                  }}
                 >
                   View My Tasks
                 </button>

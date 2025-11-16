@@ -38,7 +38,8 @@ router.post('/invite', async (req, res) => {
         });
 
         // Generate invite link
-        const inviteLink = `${process.env.FRONTEND_URL}/join/${inviteToken}`;
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const inviteLink = `${frontendUrl}/join/${inviteToken}`;
 
         // Send email
         await sendInviteEmail({
@@ -152,7 +153,8 @@ router.post('/resend-invite', async (req, res) => {
     });
 
     // Generate invite link
-    const inviteLink = `${process.env.FRONTEND_URL}/join/${inviteToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const inviteLink = `${frontendUrl}/join/${inviteToken}`;
 
     // Send email
     await sendInviteEmail({

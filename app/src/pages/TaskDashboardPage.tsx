@@ -284,6 +284,9 @@ export default function TaskDashboardPage() {
     );
   }
 
+  // Add error boundary for debugging
+  console.log('TaskDashboardPage - connected:', connected, 'publicKey:', publicKey, 'allLoading:', allLoading, 'allError:', allError, 'allTasks:', allTasks);
+
   if (allLoading) {
     return (
       <div className="app">
@@ -301,6 +304,7 @@ export default function TaskDashboardPage() {
   }
 
   if (allError) {
+    console.error('TaskDashboardPage error:', allError);
     return (
       <div className="app">
         <header className="header">
@@ -309,7 +313,31 @@ export default function TaskDashboardPage() {
         </header>
         <div className="container">
           <div className="alert alert-error">
-            {allError}
+            <strong>Error loading tasks:</strong> {allError}
+            <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+              This might happen if you haven't created any tasks yet, or if there's a connection issue.
+            </p>
+          </div>
+          <button onClick={() => navigate('/')} style={{ marginTop: '1rem' }}>
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Safety check
+  if (!allTasks) {
+    console.error('allTasks is null or undefined');
+    return (
+      <div className="app">
+        <header className="header">
+          <h1 onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>SmartDeadlines</h1>
+          <PhantomConnectButton />
+        </header>
+        <div className="container">
+          <div className="alert alert-error">
+            Unexpected error: Tasks data is unavailable
           </div>
         </div>
       </div>

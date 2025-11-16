@@ -42,6 +42,10 @@ export function useTask(taskId: string | undefined) {
         setLoading(true);
         setError(null);
 
+        if (!taskId) {
+          setError('Task ID is required');
+          return;
+        }
         const taskPDA = await getTaskPDA(taskId);
         const taskAccount = await program!.account.task.fetch(taskPDA);
 

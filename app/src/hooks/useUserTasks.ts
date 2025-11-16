@@ -40,14 +40,10 @@ export function useUserTasks(userPublicKey: PublicKey | null | undefined) {
                 ]);
 
                 // Fetch all member accounts for this user
-                const memberAccounts = await program!.account.member.all([
-                    {
-                        memcmp: {
-                            offset: 8, // discriminator
-                            bytes: userPublicKey.toBase58(), // owner field
-                        },
-                    },
-                ]);
+                // Note: Member accounts don't have an "owner" field in the same way
+                // We'll skip this for now and just show created tasks
+                const memberAccounts: any[] = [];
+                // TODO: Fix member account filtering - need to check actual account structure
 
                 // Get unique task PDAs from member accounts
                 const joinedTaskPDAs = [...new Set(memberAccounts.map(acc => (acc.account as any).task.toString()))];

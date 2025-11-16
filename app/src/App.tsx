@@ -17,6 +17,7 @@ import TaskDashboardPage from './pages/TaskDashboardPage';
 import SubmitProofPage from './pages/SubmitProofPage';
 import VotePage from './pages/VotePage';
 import FinalizePage from './pages/FinalizePage';
+import ErrorBoundary from './components/ErrorBoundary';
 // Phantom-only wallet integration: Phantom is the single supported adapter.
 
 function App() {
@@ -38,19 +39,21 @@ function App() {
       <WalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
           <Router>
-            <div className="app">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                {/* Wallet info page removed; Phantom is the only supported wallet. */}
-                <Route path="/create" element={<CreateTaskPage />} />
-                <Route path="/join/:inviteCode" element={<JoinTaskPage />} />
-                <Route path="/dashboard" element={<TaskDashboardPage />} />
-                <Route path="/task/:taskId" element={<TaskDashboardPage />} />
-                <Route path="/task/:taskId/submit-proof" element={<SubmitProofPage />} />
-                <Route path="/task/:taskId/vote" element={<VotePage />} />
-                <Route path="/task/:taskId/finalize" element={<FinalizePage />} />
-              </Routes>
-            </div>
+            <ErrorBoundary>
+              <div className="app">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  {/* Wallet info page removed; Phantom is the only supported wallet. */}
+                  <Route path="/create" element={<CreateTaskPage />} />
+                  <Route path="/join/:inviteCode" element={<JoinTaskPage />} />
+                  <Route path="/dashboard" element={<TaskDashboardPage />} />
+                  <Route path="/task/:taskId" element={<TaskDashboardPage />} />
+                  <Route path="/task/:taskId/submit-proof" element={<SubmitProofPage />} />
+                  <Route path="/task/:taskId/vote" element={<VotePage />} />
+                  <Route path="/task/:taskId/finalize" element={<FinalizePage />} />
+                </Routes>
+              </div>
+            </ErrorBoundary>
           </Router>
         </WalletModalProvider>
       </WalletProvider>

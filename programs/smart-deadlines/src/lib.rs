@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("Ev7PUfQR6BJEYL7UzmA61dkYzkRmw9iVGespX9cc852j");
 
 #[program]
 pub mod smart_deadlines {
@@ -145,6 +145,8 @@ pub mod smart_deadlines {
 
     /// Finalizes the task and distributes funds based on voting outcome
     pub fn finalize(ctx: Context<Finalize>) -> Result<()> {
+        // Get account info before mutable borrow to avoid borrow conflicts
+        let task_account_info = ctx.accounts.task.to_account_info();
         let task = &mut ctx.accounts.task;
 
         // Verify task not already finalized
@@ -183,25 +185,29 @@ pub mod smart_deadlines {
             msg!("Task finalized: REFUND mode - members can claim their stakes");
         } else {
             // Send entire escrow to charity
+            // Extract values before creating CPI context to avoid borrow conflicts
             let task_id = task.task_id.clone();
+            let task_bump = task.bump;
+            let total_deposited = task.total_deposited;
+            
             let seeds = &[
                 b"task",
                 task_id.as_bytes(),
-                &[task.bump],
+                &[task_bump],
             ];
             let signer = &[&seeds[..]];
 
             let cpi_accounts = Transfer {
                 from: ctx.accounts.escrow_account.to_account_info(),
                 to: ctx.accounts.charity_token_account.to_account_info(),
-                authority: ctx.accounts.task.to_account_info(),
+                authority: task_account_info,
             };
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-            token::transfer(cpi_ctx, task.total_deposited)?;
+            token::transfer(cpi_ctx, total_deposited)?;
 
             task.finalized = true;
-            msg!("Task finalized: Donated {} tokens to charity", task.total_deposited);
+            msg!("Task finalized: Donated {} tokens to charity", total_deposited);
         }
 
         Ok(())

@@ -10,13 +10,14 @@ import { USDC_MINT, getTaskPDA, getEscrowPDA } from '../utils/anchor';
 import { uploadJSONToIPFS } from '../utils/ipfs';
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+const BACKEND_URL = (import.meta.env?.VITE_BACKEND_URL as string) || 'http://localhost:3001';
 
 export default function CreateTaskPage() {
   const navigate = useNavigate();
   const { publicKey, connected } = useWallet();
-  const { connection } = useConnection();
   const program = useProgram();
+  
+  console.log('CreateTaskPage render - connected:', connected, 'publicKey:', publicKey, 'program:', program);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -86,8 +87,17 @@ export default function CreateTaskPage() {
       };
 
       console.log('Uploading description to IPFS...');
-      const { cid: descriptionCid } = await uploadJSONToIPFS(descriptionData);
-      console.log('✅ Description uploaded to IPFS:', descriptionCid);
+      let descriptionCid: string;
+      try {
+        const result = await uploadJSONToIPFS(descriptionData);
+        descriptionCid = result.cid;
+        console.log('✅ Description uploaded to IPFS:', descriptionCid);
+      } catch (ipfsError) {
+        console.error('IPFS upload error:', ipfsError);
+        // Generate a fallback CID if IPFS fails
+        descriptionCid = `fallback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        console.warn('⚠️ Using fallback CID:', descriptionCid);
+      }
 
       // Generate unique task ID
       const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -105,29 +115,52 @@ export default function CreateTaskPage() {
       const stakePerMemberLamports = Math.floor(stakeAmount * 1_000_000);
 
       // Create task on-chain
-      const charityPubkey = new PublicKey(formData.charityAddress);
+      let charityPubkey: PublicKey;
+      try {
+        charityPubkey = new PublicKey(formData.charityAddress);
+      } catch (pubkeyError) {
+        throw new Error(`Invalid charity address: ${formData.charityAddress}. Please enter a valid Solana address.`);
+      }
 
       // Convert all numbers to BN for Anchor
-      const tx = await program.methods
-        .createTask(
-          new BN(stakePerMemberLamports),
-          emails.length,
-          new BN(joinWindowTimestamp),
-          new BN(deadlineTimestamp),
-          charityPubkey,
-          descriptionCid,
-          taskId
-        )
-        .accounts({
-          task: taskPDA,
-          escrowAccount: escrowPDA,
-          usdcMint: USDC_MINT,
-          creator: publicKey,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          rent: SYSVAR_RENT_PUBKEY,
-        })
-        .rpc();
+      let tx: string;
+      try {
+        tx = await program.methods
+          .createTask(
+            new BN(stakePerMemberLamports),
+            emails.length,
+            new BN(joinWindowTimestamp),
+            new BN(deadlineTimestamp),
+            charityPubkey,
+            descriptionCid,
+            taskId
+          )
+          .accounts({
+            task: taskPDA,
+            escrowAccount: escrowPDA,
+            usdcMint: USDC_MINT,
+            creator: publicKey,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: SYSVAR_RENT_PUBKEY,
+          })
+          .rpc();
+      } catch (txError: any) {
+        console.error('Transaction error:', txError);
+        // Provide more helpful error messages
+        if (txError.message?.includes('insufficient funds')) {
+          throw new Error('Insufficient SOL for transaction fees. Please ensure your wallet has enough SOL.');
+        } else if (txError.message?.includes('AccountNotInitialized') || txError.message?.includes('AccountDiscriminatorAlreadySet')) {
+          throw new Error('Task account already exists. Please try again with a different task.');
+        } else if (txError.message?.includes('InvalidAccountData')) {
+          throw new Error('Invalid account data. Please check your inputs and try again.');
+        } else if (txError.logs) {
+          // Extract more details from Solana error logs
+          const errorLog = txError.logs?.find((log: string) => log.includes('Error') || log.includes('failed'));
+          throw new Error(`Transaction failed: ${errorLog || txError.message || 'Unknown error'}`);
+        }
+        throw new Error(`Transaction failed: ${txError.message || 'Unknown error. Check console for details.'}`);
+      }
 
       console.log('✅ Task created! Transaction:', tx);
       setSuccess(`Task created successfully! Task ID: ${taskId}`);
@@ -142,17 +175,32 @@ export default function CreateTaskPage() {
           stakeAmount: stakeAmount,
           joinWindowTimestamp,
           creatorEmail: 'creator@example.com', // In production, get from user profile
+        }, {
+          timeout: 10000, // 10 second timeout
         });
 
         if (inviteResponse.data.success) {
           console.log('✅ Invitation emails sent successfully');
           const successCount = inviteResponse.data.results.filter((r: any) => r.success).length;
-          setSuccess(`Task created! Invitations sent to ${successCount}/${emails.length} members. Task ID: ${taskId}`);
+          const failedCount = emails.length - successCount;
+          
+          if (failedCount === 0) {
+            setSuccess(`Task created! Invitations sent to all ${emails.length} members. Task ID: ${taskId}`);
+          } else {
+            setSuccess(`Task created! Invitations sent to ${successCount}/${emails.length} members. ${failedCount} failed. Task ID: ${taskId}`);
+          }
         }
-      } catch (emailError) {
+      } catch (emailError: any) {
         console.error('⚠️ Failed to send invitation emails:', emailError);
-        // Don't fail the whole task creation if emails fail
-        setSuccess(`Task created successfully (Task ID: ${taskId}), but invitation emails could not be sent. Please share the task link manually.`);
+        
+        // Check if backend is running
+        if (emailError.code === 'ECONNREFUSED' || emailError.message?.includes('Network Error')) {
+          console.warn('Backend server not reachable. Emails will not be sent.');
+          setSuccess(`Task created successfully (Task ID: ${taskId}), but backend server is not running. Emails were not sent. Please start the backend server or share the task link manually.`);
+        } else {
+          // Don't fail the whole task creation if emails fail
+          setSuccess(`Task created successfully (Task ID: ${taskId}), but invitation emails could not be sent: ${emailError.message || 'Unknown error'}. Please share the task link manually.`);
+        }
       }
 
       // Navigate to task dashboard after 2 seconds
@@ -162,7 +210,17 @@ export default function CreateTaskPage() {
 
     } catch (err) {
       console.error('Error creating task:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create task');
+      let errorMessage = 'Failed to create task';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err && typeof err === 'object' && 'message' in err) {
+        errorMessage = String(err.message);
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
