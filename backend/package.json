@@ -1,0 +1,24 @@
+{
+  "name": "smart-deadlines-backend",
+  "version": "1.0.0",
+  "description": "Backend service for SmartDeadlines email invitations",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": ["solana", "blockchain", "email", "invitations"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@sendgrid/mail": "^7.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
