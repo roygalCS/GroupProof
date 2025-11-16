@@ -30,7 +30,7 @@ export function useUserTasks(userPublicKey: PublicKey | null | undefined) {
                 }
 
                 // Fetch all task accounts created by the user
-                const createdTasks = await program!.account.task.all([
+                const createdTasks = await (program!.account as any).task.all([
                     {
                         memcmp: {
                             offset: 8 + 32, // discriminator + creator (first field after discriminator)
@@ -53,7 +53,7 @@ export function useUserTasks(userPublicKey: PublicKey | null | undefined) {
                     joinedTaskPDAs.map(async (taskPDAStr) => {
                         try {
                             const taskPDA = new PublicKey(taskPDAStr);
-                            const taskAccount = await program!.account.task.fetch(taskPDA);
+                            const taskAccount = await (program!.account as any).task.fetch(taskPDA);
                             return {
                                 creator: taskAccount.creator as PublicKey,
                                 stakePerMember: (taskAccount.stakePerMember as any).toNumber(),
@@ -79,7 +79,7 @@ export function useUserTasks(userPublicKey: PublicKey | null | undefined) {
                 );
 
                 // Convert created tasks to TaskData format
-                const createdTasksData = createdTasks.map((acc) => ({
+                const createdTasksData = createdTasks.map((acc: any) => ({
                     creator: acc.account.creator as PublicKey,
                     stakePerMember: (acc.account.stakePerMember as any).toNumber(),
                     requiredMembers: acc.account.requiredMembers as number,

@@ -1,4 +1,4 @@
-import { formatDistanceToNow, formatDistance, isPast, differenceInSeconds } from 'date-fns';
+import { formatDistanceToNow, isPast, differenceInSeconds } from 'date-fns';
 
 export function formatTimestamp(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleString();

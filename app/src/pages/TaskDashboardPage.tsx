@@ -167,14 +167,20 @@ export default function TaskDashboardPage() {
 
             <div style={{ marginBottom: '1rem' }}>
               <strong>Description:</strong>{' '}
-              <a
-                href={getIPFSUrl(singleTask.descriptionCid)}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: '#667eea' }}
-              >
-                View on IPFS
-              </a>
+              {import.meta.env.VITE_WEB3_STORAGE_TOKEN && import.meta.env.VITE_WEB3_STORAGE_TOKEN !== 'your_web3_storage_token_here' ? (
+                <a
+                  href={getIPFSUrl(singleTask.descriptionCid)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#667eea' }}
+                >
+                  View on IPFS
+                </a>
+              ) : (
+                <span style={{ color: '#666', fontStyle: 'italic' }}>
+                  IPFS not configured (CID: {singleTask.descriptionCid.substring(0, 20)}...)
+                </span>
+              )}
             </div>
 
             <div style={{ marginBottom: '1rem' }}>

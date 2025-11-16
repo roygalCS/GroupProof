@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import PhantomConnectButton from '../components/PhantomConnectButton';
-import { PublicKey } from '@solana/web3.js';
 import { useProgram } from '../hooks/useProgram';
 import { useTask } from '../hooks/useTask';
 import { getTaskPDA, getMemberPDA } from '../utils/anchor';
@@ -30,13 +29,13 @@ export default function VotePage() {
         const taskPDA = await getTaskPDA(taskId!);
         const creatorMemberPDA = await getMemberPDA(taskPDA, task.creator);
 
-        const memberAccount = await program.account.member.fetch(creatorMemberPDA);
+        const memberAccount = await (program.account as any).member.fetch(creatorMemberPDA);
         setProofCid((memberAccount.proofCid as string) || '');
 
         // Check if current user has voted
         const currentUserMemberPDA = await getMemberPDA(taskPDA, publicKey);
         try {
-          const currentUserMember = await program.account.member.fetch(currentUserMemberPDA);
+          const currentUserMember = await (program.account as any).member.fetch(currentUserMemberPDA);
           setHasVoted(currentUserMember.voted as boolean);
         } catch {
           // User is not a member

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import PhantomConnectButton from '../components/PhantomConnectButton';
-import { PublicKey, SystemProgram } from '@solana/web3.js';
+import { SystemProgram } from '@solana/web3.js';
 import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useProgram } from '../hooks/useProgram';
 import { useTask } from '../hooks/useTask';
@@ -17,7 +17,6 @@ export default function JoinTaskPage() {
   const { inviteCode } = useParams();
   const navigate = useNavigate();
   const { publicKey, connected } = useWallet();
-  const { connection } = useConnection();
   const program = useProgram();
 
   const [taskId, setTaskId] = useState<string>('');

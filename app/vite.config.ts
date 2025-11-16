@@ -11,5 +11,20 @@ export default defineConfig({
   },
   define: {
     'process.env': {},
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: ['buffer'],
+    exclude: [],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
+  build: {
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
   },
 })

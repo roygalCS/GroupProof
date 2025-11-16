@@ -518,7 +518,44 @@
         166,
         17,
         198
-      ]
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "task",
+            "type": "pubkey"
+          },
+          {
+            "name": "email_hash",
+            "type": "string"
+          },
+          {
+            "name": "proof_cid",
+            "type": "string"
+          },
+          {
+            "name": "voted",
+            "type": "bool"
+          },
+          {
+            "name": "vote_yes",
+            "type": "bool"
+          },
+          {
+            "name": "deposited",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
     },
     {
       "name": "Task",
@@ -531,7 +568,72 @@
         90,
         55,
         84
-      ]
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_per_member",
+            "type": "u64"
+          },
+          {
+            "name": "required_members",
+            "type": "u8"
+          },
+          {
+            "name": "member_count",
+            "type": "u8"
+          },
+          {
+            "name": "join_window_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "deadline_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "charity_pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "description_cid",
+            "type": "string"
+          },
+          {
+            "name": "yes_votes",
+            "type": "u8"
+          },
+          {
+            "name": "no_votes",
+            "type": "u8"
+          },
+          {
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "name": "total_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "task_id",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "escrow_bump",
+            "type": "u8"
+          }
+        ]
+      }
     }
   ],
   "errors": [

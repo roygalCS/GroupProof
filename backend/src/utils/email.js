@@ -58,14 +58,18 @@ async function sendInviteEmail({ to, taskTitle, stakeAmount, inviteLink, creator
 
   // If SendGrid is not configured, log the email instead
   if (!SENDGRID_API_KEY || SENDGRID_API_KEY === 'your_sendgrid_api_key_here') {
-    console.log('\n=== EMAIL (SendGrid not configured) ===');
+    console.log('\n=== 📧 EMAIL (SendGrid not configured - logged to console) ===');
     console.log(`To: ${to}`);
     console.log(`From: ${FROM_EMAIL}`);
-    console.log(`Subject: You've been invited to join a SmartDeadlines task`);
+    console.log(`Subject: You've been invited to join: ${taskTitle}`);
     console.log(`\nBody:\n${emailContent.text}`);
     console.log('\nInvite Link:', inviteLink);
+    console.log('\n⚠️  To send real emails:');
+    console.log('   1. Get a SendGrid API key from https://sendgrid.com');
+    console.log('   2. Add SENDGRID_API_KEY=your_key_here to backend/.env');
+    console.log('   3. Restart the backend server');
     console.log('=======================================\n');
-    return { success: true, message: 'Email logged (SendGrid not configured)' };
+    return { success: true, message: 'Email logged (SendGrid not configured)', error: 'SendGrid not configured' };
   }
 
   const msg = {

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import PhantomConnectButton from '../components/PhantomConnectButton';
 import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { BN } from '@coral-xyz/anchor';
 import { useProgram } from '../hooks/useProgram';
 import { USDC_MINT, getTaskPDA, getEscrowPDA } from '../utils/anchor';
-import { uploadJSONToIPFS } from '../utils/ipfs';
+import { uploadJSONToIPFS, generateMockCID } from '../utils/ipfs';
 import axios from 'axios';
 
 const BACKEND_URL = (import.meta.env?.VITE_BACKEND_URL as string) || 'http://localhost:3001';
@@ -94,9 +94,12 @@ export default function CreateTaskPage() {
         console.log('✅ Description uploaded to IPFS:', descriptionCid);
       } catch (ipfsError) {
         console.error('IPFS upload error:', ipfsError);
-        // Generate a fallback CID if IPFS fails
-        descriptionCid = `fallback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        console.warn('⚠️ Using fallback CID:', descriptionCid);
+        // Generate a valid-looking mock CID if IPFS fails (for development)
+        // This will be stored on-chain but won't be retrievable from IPFS
+        const mockData = JSON.stringify(descriptionData);
+        descriptionCid = generateMockCID(mockData);
+        console.warn('⚠️ IPFS not configured - using mock CID:', descriptionCid);
+        console.warn('⚠️ Note: This CID will not resolve on IPFS. Configure VITE_WEB3_STORAGE_TOKEN for real IPFS uploads.');
       }
 
       // Generate unique task ID
@@ -184,10 +187,26 @@ export default function CreateTaskPage() {
           const successCount = inviteResponse.data.results.filter((r: any) => r.success).length;
           const failedCount = emails.length - successCount;
           
+          // Check if SendGrid is configured by looking at the results
+          const hasSendGrid = inviteResponse.data.results.some((r: any) => 
+            !r.error || !r.error.includes('SendGrid not configured')
+          );
+          const sendGridNotConfigured = inviteResponse.data.results.some((r: any) => 
+            r.error && r.error.includes('SendGrid not configured')
+          );
+          
           if (failedCount === 0) {
-            setSuccess(`Task created! Invitations sent to all ${emails.length} members. Task ID: ${taskId}`);
+            if (sendGridNotConfigured) {
+              setSuccess(`Task created! (Task ID: ${taskId}) ⚠️ SendGrid is not configured. Emails were logged to backend console. Check backend logs for email content. Configure SENDGRID_API_KEY in backend/.env to send real emails.`);
+            } else {
+              setSuccess(`Task created! Invitations sent to all ${emails.length} members. Task ID: ${taskId}`);
+            }
           } else {
-            setSuccess(`Task created! Invitations sent to ${successCount}/${emails.length} members. ${failedCount} failed. Task ID: ${taskId}`);
+            if (sendGridNotConfigured) {
+              setSuccess(`Task created! (Task ID: ${taskId}) ⚠️ SendGrid is not configured. Emails were logged to backend console. Configure SENDGRID_API_KEY in backend/.env to send real emails.`);
+            } else {
+              setSuccess(`Task created! Invitations sent to ${successCount}/${emails.length} members. ${failedCount} failed. Task ID: ${taskId}`);
+            }
           }
         }
       } catch (emailError: any) {

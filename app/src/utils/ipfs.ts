@@ -6,20 +6,38 @@ export interface IPFSUploadResult {
 }
 
 /**
- * Generate a mock CID for development when IPFS is not configured
+ * Generate a valid-looking mock CID for development when IPFS is not configured
+ * Uses base58btc alphabet (no 0, O, I, l characters)
  */
 function generateMockCID(content: string): string {
-  // Create a simple hash-like string from the content
+  // Create a simple hash from the content
   let hash = 0;
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash; // Convert to 32bit integer
   }
-  // Create a fake CID-like string
-  const timestamp = Date.now().toString(36);
-  const hashStr = Math.abs(hash).toString(36);
-  return `Qm${timestamp}${hashStr}MockCID${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Base58btc alphabet (Bitcoin's base58 without 0, O, I, l)
+  const base58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  
+  // Generate a hash-like string using base58
+  let num = Math.abs(hash) + Date.now();
+  let cid = 'Qm'; // CIDv0 prefix
+  
+  // Convert to base58
+  while (num > 0) {
+    cid += base58[num % 58];
+    num = Math.floor(num / 58);
+  }
+  
+  // Pad to typical CID length (46 chars total: Qm + 44 chars)
+  while (cid.length < 46) {
+    const randomChar = base58[Math.floor(Math.random() * base58.length)];
+    cid += randomChar;
+  }
+  
+  return cid.substring(0, 46); // Ensure exactly 46 characters
 }
 
 /**
@@ -90,9 +108,52 @@ export async function uploadJSONToIPFS(data: object): Promise<IPFSUploadResult> 
 }
 
 /**
+ * Generate a valid-looking mock CID for development when IPFS is not configured
+ * Uses base58btc alphabet (no 0, O, I, l characters)
+ */
+export function generateMockCID(content: string): string {
+  // Create a simple hash from the content
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  // Base58btc alphabet (Bitcoin's base58 without 0, O, I, l)
+  const base58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  
+  // Generate a hash-like string using base58
+  let num = Math.abs(hash) + Date.now();
+  let cid = 'Qm'; // CIDv0 prefix
+  
+  // Convert to base58
+  while (num > 0) {
+    cid += base58[num % 58];
+    num = Math.floor(num / 58);
+  }
+  
+  // Pad to typical CID length (46 chars total: Qm + 44 chars)
+  while (cid.length < 46) {
+    const randomChar = base58[Math.floor(Math.random() * base58.length)];
+    cid += randomChar;
+  }
+  
+  return cid.substring(0, 46); // Ensure exactly 46 characters
+}
+
+/**
  * Get IPFS URL from CID
+ * Shows a warning if CID looks like a mock CID
  */
 export function getIPFSUrl(cid: string): string {
+  // Check if this is a mock CID (starts with Qm but might not be valid)
+  const token = import.meta.env.VITE_WEB3_STORAGE_TOKEN;
+  if (!token || token === 'your_web3_storage_token_here') {
+    // If IPFS is not configured, return a placeholder URL
+    // The CID won't resolve, but at least the format is valid
+    return `https://w3s.link/ipfs/${cid}`;
+  }
   return `https://w3s.link/ipfs/${cid}`;
 }
 

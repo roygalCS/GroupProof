@@ -75,6 +75,9 @@ export default function SubmitProofPage() {
 
       // Submit proof on-chain
       setSubmitting(true);
+      if (!program) {
+        throw new Error('Program not initialized');
+      }
       const taskPDA = await getTaskPDA(taskId!);
       const memberPDA = await getMemberPDA(taskPDA, publicKey);
 

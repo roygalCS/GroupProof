@@ -47,7 +47,7 @@ export function useTask(taskId: string | undefined) {
           return;
         }
         const taskPDA = await getTaskPDA(taskId);
-        const taskAccount = await program!.account.task.fetch(taskPDA);
+        const taskAccount = await (program!.account as any).task.fetch(taskPDA);
 
         if (mounted) {
           setTask({
