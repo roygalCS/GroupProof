@@ -188,9 +188,6 @@ export default function CreateTaskPage() {
           const failedCount = emails.length - successCount;
           
           // Check if SendGrid is configured by looking at the results
-          const hasSendGrid = inviteResponse.data.results.some((r: any) => 
-            !r.error || !r.error.includes('SendGrid not configured')
-          );
           const sendGridNotConfigured = inviteResponse.data.results.some((r: any) => 
             r.error && r.error.includes('SendGrid not configured')
           );

@@ -45,9 +45,13 @@ export default function JoinTaskPage() {
         setTaskId(response.data.taskId);
         setEmail(response.data.email);
         setVerifying(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error verifying invite:', err);
-        setError('Invalid or expired invite link');
+        if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
+          setError('Cannot connect to server. The invite link may be using localhost. Please contact the task creator for a public link.');
+        } else {
+          setError('Invalid or expired invite link');
+        }
         setVerifying(false);
       }
     }
