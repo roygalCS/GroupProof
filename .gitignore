@@ -1,26 +1,26 @@
-.anchor
-.DS_Store
-target
-**/*.rs.bk
-node_modules
-test-ledger
-.yarn
-.env
-*.log
-dist
-build
-.vscode
-.idea
-
-# Frontend
-app/dist
-app/node_modules
-app/.env
 
 # Backend
-backend/node_modules
-backend/.env
-
+# Frontend
 # Solana
-*.so
+**/*.rs.bk
+*.bak
 *.keypair
+*.log
+*.so
+.DS_Store
+.anchor
+.env
+.idea
+.vscode
+.yarn
+app/.env
+app/dist
+app/node_modules
+backend/.env
+backend/.env.bak
+backend/node_modules
+build
+dist
+node_modules
+target
+test-ledger
