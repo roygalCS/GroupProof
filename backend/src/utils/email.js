@@ -1,10 +1,17 @@
 const sgMail = require('@sendgrid/mail');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+// Load .env file before reading environment variables
+dotenv.config();
 
 // Initialize SendGrid
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 if (SENDGRID_API_KEY && SENDGRID_API_KEY !== 'your_sendgrid_api_key_here') {
   sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log('✅ SendGrid initialized with API key (length:', SENDGRID_API_KEY.length, ')');
+} else {
+  console.warn('⚠️ SendGrid API key not configured or invalid');
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
@@ -81,15 +88,22 @@ async function sendInviteEmail({ to, taskTitle, stakeAmount, inviteLink, creator
   };
 
   try {
-    await sgMail.send(msg);
-    console.log(`Invitation email sent to ${to}`);
+    const result = await sgMail.send(msg);
+    console.log(`✅ Invitation email sent successfully to ${to}`);
+    console.log(`   Status: ${result[0]?.statusCode || 'sent'}`);
     return { success: true };
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error sending email to', to, ':', error.message);
     if (error.response) {
-      console.error('SendGrid error:', error.response.body);
+      console.error('SendGrid API Error:', JSON.stringify(error.response.body, null, 2));
+      console.error('Status Code:', error.response.statusCode);
     }
-    throw error;
+    // Return error details instead of throwing
+    return { 
+      success: false, 
+      error: error.message,
+      details: error.response?.body 
+    };
   }
 }
 

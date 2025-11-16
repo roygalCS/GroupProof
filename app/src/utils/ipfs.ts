@@ -6,41 +6,6 @@ export interface IPFSUploadResult {
 }
 
 /**
- * Generate a valid-looking mock CID for development when IPFS is not configured
- * Uses base58btc alphabet (no 0, O, I, l characters)
- */
-function generateMockCID(content: string): string {
-  // Create a simple hash from the content
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    const char = content.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  
-  // Base58btc alphabet (Bitcoin's base58 without 0, O, I, l)
-  const base58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-  
-  // Generate a hash-like string using base58
-  let num = Math.abs(hash) + Date.now();
-  let cid = 'Qm'; // CIDv0 prefix
-  
-  // Convert to base58
-  while (num > 0) {
-    cid += base58[num % 58];
-    num = Math.floor(num / 58);
-  }
-  
-  // Pad to typical CID length (46 chars total: Qm + 44 chars)
-  while (cid.length < 46) {
-    const randomChar = base58[Math.floor(Math.random() * base58.length)];
-    cid += randomChar;
-  }
-  
-  return cid.substring(0, 46); // Ensure exactly 46 characters
-}
-
-/**
  * Upload file to IPFS using Web3.Storage
  * Note: You'll need to set VITE_WEB3_STORAGE_TOKEN in your .env file
  * Falls back to mock implementation for development

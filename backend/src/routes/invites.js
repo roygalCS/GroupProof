@@ -20,8 +20,14 @@ router.post('/invite', async (req, res) => {
 
     const inviteResults = [];
 
+    console.log(`\n📧 Processing ${emails.length} email invitation(s)...`);
+    console.log(`   Task ID: ${taskId}`);
+    console.log(`   Emails: ${emails.join(', ')}`);
+    
     for (const email of emails) {
       try {
+        console.log(`\n   Processing invite for: ${email}`);
+        
         // Generate unique invite token
         const inviteToken = generateInviteToken({
           taskId,
@@ -40,9 +46,11 @@ router.post('/invite', async (req, res) => {
         // Generate invite link
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const inviteLink = `${frontendUrl}/join/${inviteToken}`;
+        console.log(`   Invite link: ${inviteLink}`);
 
         // Send email
-        await sendInviteEmail({
+        console.log(`   Sending email via SendGrid...`);
+        const emailResult = await sendInviteEmail({
           to: email,
           taskTitle: taskTitle || 'Group Task',
           stakeAmount: stakeAmount || 'TBD',
@@ -50,11 +58,21 @@ router.post('/invite', async (req, res) => {
           creatorEmail: creatorEmail || 'A team member'
         });
 
-        inviteResults.push({
-          email,
-          success: true,
-          inviteToken
-        });
+        if (emailResult.success) {
+          inviteResults.push({
+            email,
+            success: true,
+            inviteToken
+          });
+        } else {
+          console.error(`Failed to send email to ${email}:`, emailResult.error);
+          inviteResults.push({
+            email,
+            success: false,
+            error: emailResult.error || 'Unknown error',
+            details: emailResult.details
+          });
+        }
       } catch (error) {
         console.error(`Failed to send invite to ${email}:`, error);
         inviteResults.push({
